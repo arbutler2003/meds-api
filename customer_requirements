@@ -1,0 +1,25 @@
+1. Executive Summary
+HealthGuard Inc. requires a backend service that allows patients to quickly check medication safety. The system must
+retrieve up-to-date drug labeling information from federal databases and serve it to our mobile app with low latency.
+
+
+2. Functional Requirements
+These are the specific behaviors the system must support:
+
+REQ-1 (Drug Search): The system must accept a generic or brand drug name (e.g., "Ibuprofen") and return the official
+FDA "Warnings" and "Adverse Reactions."
+
+REQ-2 (Interaction Check): The system must allow users to view specific "Drug Interactions" for a medication to see
+what other drugs might react with it.
+
+REQ-3 (Response Format): All data must be returned in standard JSON format so our mobile app team can easily read it.
+
+
+3. Non-Functional Requirements
+These are the constraints on performance and architecture:
+
+REQ-4 (Performance/Caching): Frequent searches must return results in under 200ms. To achieve this, the system must
+implement caching (Redis) for results that have been fetched within the last 24 hours.
+
+REQ-5 (Portability): The entire application (API + Database) must launch with a single command using Docker, ensuring
+no manual installation of Python dependencies is required for new developers.
