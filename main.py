@@ -33,7 +33,7 @@ async def get_drug_info(name: str) -> dict:
     """
     Retrieves a refined drug label from the FDA API.
 
-    :param name: The brand name of the drug.
+    :param name: The brand/generic drug name (case-insensitive).
     :return: A refined drug label as a JSON object
     """
     raw_data = await fetch_drug_label(name)
