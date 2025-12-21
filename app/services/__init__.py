@@ -1,0 +1,1 @@
+from .fda_client import fetch_drug_label
