@@ -10,14 +10,16 @@ async def fetch_drug_label(drug_name: str) -> dict | None:
     """
     Fetches the raw 'results' from the FDA API, currently omits the 'meta' data.
 
-    :param drug_name: The brand name of the drug being searched for.
+    :param drug_name: The brand/generic name (case-insensitive) of the drug being searched for.
     :return: The raw 'results' from the FDA API or None (if fails).
     """
     base_url = "https://api.fda.gov/drug/label.json"
 
+    search_query = f'openfda.brand_name:"{drug_name}" + openfda.generic_name:"{drug_name}"'
+
     params = {
         "api_key": os.getenv("FDA_API_KEY"),
-        "search": f'openfda.brand_name.exact:"{drug_name}"',
+        "search": search_query,
         "limit": 1
     }
 
