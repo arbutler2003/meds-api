@@ -1,17 +1,24 @@
+import json
 import os
+
 import httpx
+import redis.asyncio as redis
 from dotenv import load_dotenv
 
 
 load_dotenv()
+
+redis_client = redis.Redis(host='localhost', port=6379, db=0, decode_responses=True)
 
 
 async def fetch_drug_label(drug_name: str) -> dict | None:
     """
     Fetches the raw 'results' from the FDA API, currently omits the 'meta' data.
 
-    :param drug_name: The brand/generic name (case-insensitive) of the drug being searched for.
-    :return: The raw 'results' from the FDA API or None (if fails).
+    Args:
+        drug_name: The brand/generic name (case-insensitive) of the drug being searched for.
+    Returns:
+        The raw 'results' from the FDA API or None (if fails).
     """
     base_url = "https://api.fda.gov/drug/label.json"
 
@@ -42,3 +49,38 @@ async def fetch_drug_label(drug_name: str) -> dict | None:
             return results[0]
 
         return None
+
+
+async def fetch_drug_label_with_caching(drug_name: str) -> dict | None:
+    """
+    Fetches drug label from the FDA API or a Redis cache if available (stored for 24 hours).
+
+    This function operates above fetch_drug_label(), checking the Redis cache first before fetching from the API and
+    storing the response in the cache.
+
+    Args:
+        drug_name: The brand/generic name (case-insensitive) of the drug being searched for.
+    Returns:
+        The 'results' from the FDA drug label API as a dictionary or None (if fails).
+    """
+    cache_key = f"drug_label:{drug_name.lower()}"
+
+    try:
+        cached_response = await redis_client.get(cache_key)
+        if cached_response:
+            print(f"Cache hit for {drug_name}")
+            return json.loads(cached_response) # Deserialize
+    except redis.RedisError as e:
+        print(f"Redis error: {e}")
+
+    print(f"Cache miss for {drug_name}. Fetching...")
+    fresh_response = await fetch_drug_label(drug_name)
+
+    if fresh_response:
+        await redis_client.set(
+            cache_key,
+            json.dumps(fresh_response), # Serialize
+            ex=86400 # 24 hours
+        )
+
+    return fresh_response

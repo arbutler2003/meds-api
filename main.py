@@ -2,7 +2,7 @@ from fastapi import FastAPI, HTTPException
 
 from app.schemas import RefinedDrugLabel
 from app.services import fetch_drug_label
-
+from app.services.fda_client import fetch_drug_label_with_caching
 
 app = FastAPI()
 
@@ -36,7 +36,7 @@ async def get_drug_info(name: str) -> dict:
     :param name: The brand/generic drug name (case-insensitive).
     :return: A refined drug label as a JSON object
     """
-    raw_data = await fetch_drug_label(name)
+    raw_data = await fetch_drug_label_with_caching(name)
 
     if not raw_data:
         raise HTTPException(status_code=404, detail="Drug not found.")
